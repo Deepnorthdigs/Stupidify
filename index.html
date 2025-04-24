@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stupidify</title>
+  <style>
+    :root {
+      --primary-color: #1DB954;
+      --secondary-color: #191414;
+      --text-color: #ffffff;
+      --background-color: #121212;
+      --hover-color: #282828;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--background-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      width: 100%;
+    }
+
+    header {
+      background-color: var(--secondary-color);
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    .file-input-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .file-input-label {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    .file-input-label:hover {
+      transform: scale(1.05);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .player-container {
+      background-color: var(--secondary-color);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .now-playing {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2em;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .control-btn {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .control-btn:hover {
+      background-color: var(--hover-color);
+    }
+
+    .control-btn.active {
+      color: var(--primary-color);
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background-color: var(--hover-color);
+      border-radius: 3px;
+      margin: 20px 0;
+      cursor: pointer;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary-color);
+      border-radius: 3px;
+      width: 0%;
+    }
+
+    .time-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9em;
+      color: #b3b3b3;
+    }
+
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .volume-slider {
+      width: 100px;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--hover-color);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    #playlist {
+      list-style: none;
+      padding: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    #playlist::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #playlist::-webkit-scrollbar-track {
+      background: var(--hover-color);
+    }
+
+    #playlist::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    #playlist li {
+      padding: 15px;
+      margin: 5px 0;
+      background-color: var(--hover-color);
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+
+    #playlist li:hover {
+      background-color: #333;
+    }
+
+    #playlist li.playing {
+      background-color: var(--primary-color);
+    }
+
+    .track-info {
+      flex: 1;
+    }
+
+    .track-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .remove-track {
+      color: #ff4444;
+      cursor: pointer;
+    }
+
+    .playback-mode {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .mode-btn {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin: 0 5px;
+    }
+
+    .mode-btn.active {
+      background-color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Stupidify</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="file-input-container">
+      <label for="fileInput" class="file-input-label">Select Music Files</label>
+      <input type="file" id="fileInput" multiple accept="audio/*" />
+    </div>
+
+    <div class="player-container">
+      <div id="nowPlaying" class="now-playing">No track selected</div>
+      
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      
+      <div class="time-info">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn" id="shuffleBtn" title="Shuffle">🔀</button>
+        <button class="control-btn" id="prevBtn" title="Previous">⏮</button>
+        <button class="control-btn" id="playPauseBtn" title="Play/Pause">▶️</button>
+        <button class="control-btn" id="nextBtn" title="Next">⏭</button>
+        <button class="control-btn" id="repeatBtn" title="Repeat">🔁</button>
+      </div>
+
+      <div class="volume-container">
+        <span>🔊</span>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+      </div>
+    </div>
+
+    <div class="playback-mode">
+      <button class="mode-btn" id="repeatOneBtn">Repeat One</button>
+      <button class="mode-btn" id="repeatAllBtn">Repeat All</button>
+      <button class="mode-btn" id="noRepeatBtn">No Repeat</button>
+    </div>
+
+    <ul id="playlist"></ul>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const playlist = document.getElementById('playlist');
+    const audioPlayer = document.getElementById('audioPlayer') || new Audio();
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const nowPlaying = document.getElementById('nowPlaying');
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const durationDisplay = document.getElementById('duration');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const repeatOneBtn = document.getElementById('repeatOneBtn');
+    const repeatAllBtn = document.getElementById('repeatAllBtn');
+    const noRepeatBtn = document.getElementById('noRepeatBtn');
+
+    let files = [];
+    let currentTrack = 0;
+    let isPlaying = false;
+    let isShuffled = false;
+    let repeatMode = 'none'; // 'none', 'one', 'all'
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = Math.floor(seconds % 60);
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateProgress() {
+      const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+    }
+
+    function playTrack(index) {
+      if (index >= 0 && index < files.length) {
+        currentTrack = index;
+        const file = files[currentTrack];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          audioPlayer.src = event.target.result;
+          audioPlayer.play();
+          isPlaying = true;
+          playPauseBtn.textContent = '⏸️';
+          nowPlaying.textContent = `Now Playing: ${file.name}`;
+          updatePlayingState();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function updatePlayingState() {
+      document.querySelectorAll('#playlist li').forEach((li, index) => {
+        li.classList.toggle('playing', index === currentTrack);
+      });
+    }
+
+    function shufflePlaylist() {
+      isShuffled = !isShuffled;
+      shuffleBtn.classList.toggle('active', isShuffled);
+      if (isShuffled) {
+        files = files.sort(() => Math.random() - 0.5);
+      } else {
+        files.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      renderPlaylist();
+    }
+
+    function renderPlaylist() {
+      playlist.innerHTML = '';
+      files.forEach((file, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="track-info">${file.name}</div>
+          <div class="track-controls">
+            <span class="remove-track" data-index="${index}">❌</span>
+          </div>
+        `;
+        li.addEventListener('click', () => playTrack(index));
+        playlist.appendChild(li);
+      });
+      updatePlayingState();
+    }
+
+    function setRepeatMode(mode) {
+      repeatMode = mode;
+      repeatOneBtn.classList.toggle('active', mode === 'one');
+      repeatAllBtn.classList.toggle('active', mode === 'all');
+      noRepeatBtn.classList.toggle('active', mode === 'none');
+    }
+
+    // Event Listeners
+    fileInput.addEventListener('change', (e) => {
+      files = Array.from(e.target.files);
+      renderPlaylist();
+      if (files.length > 0) playTrack(0);
+    });
+
+    prevBtn.addEventListener('click', () => {
+      playTrack(currentTrack - 1);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      playTrack(currentTrack + 1);
+    });
+
+    playPauseBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audioPlayer.pause();
+        playPauseBtn.textContent = '▶️';
+      } else {
+        audioPlayer.play();
+        playPauseBtn.textContent = '⏸️';
+      }
+      isPlaying = !isPlaying;
+    });
+
+    shuffleBtn.addEventListener('click', shufflePlaylist);
+
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      audioPlayer.currentTime = pos * audioPlayer.duration;
+    });
+
+    audioPlayer.addEventListener('timeupdate', updateProgress);
+    audioPlayer.addEventListener('loadedmetadata', () => {
+      durationDisplay.textContent = formatTime(audioPlayer.duration);
+    });
+
+    audioPlayer.addEventListener('ended', () => {
+      if (repeatMode === 'one') {
+        playTrack(currentTrack);
+      } else if (repeatMode === 'all' || currentTrack < files.length - 1) {
+        playTrack(currentTrack + 1);
+      }
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      audioPlayer.volume = e.target.value / 100;
+    });
+
+    repeatOneBtn.addEventListener('click', () => setRepeatMode('one'));
+    repeatAllBtn.addEventListener('click', () => setRepeatMode('all'));
+    noRepeatBtn.addEventListener('click', () => setRepeatMode('none'));
+
+    playlist.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-track')) {
+        const index = parseInt(e.target.dataset.index);
+        files.splice(index, 1);
+        if (currentTrack >= index) currentTrack--;
+        renderPlaylist();
+      }
+    });
+
+    // Initialize
+    setRepeatMode('none');
+  </script>
+</body>
+</html>
